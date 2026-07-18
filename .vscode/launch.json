@@ -8,6 +8,22 @@
       "program": "lib/main.dart",
       "cwd": "${workspaceFolder}",
       "deviceId": "windows"
+    },
+    {
+      "name": "Flutter Chrome",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "Flutter macOS",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}",
+      "deviceId": "macos"
     }
   ]
 }

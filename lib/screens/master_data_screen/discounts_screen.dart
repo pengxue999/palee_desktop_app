@@ -12,7 +12,16 @@ import '../../widgets/app_text_field.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_dropdown.dart';
 
-const _discountDescriptionLabels = ['ຮຽນ 3 ວິຊາຂຶ້ນໄປ', 'ລົງທະບຽນຮຽນຊ້າ'];
+const _discountDescriptionLabels = ['ຮຽນຫຼາຍວິຊາ', 'ລົງທະບຽນຮຽນຊ້າ'];
+const _multiSubjectLabel = 'ຮຽນຫຼາຍວິຊາ';
+
+// ປ້າຍ/ຄຳໃບ້ ຂອງຊ່ອງ threshold ປ່ຽນຕາມເງື່ອນໄຂສ່ວນຫຼຸດທີ່ເລືອກ.
+({String label, String hint}) _thresholdFieldMeta(String? description) {
+  if (description == _multiSubjectLabel) {
+    return (label: 'ຈຳນວນວິຊາ', hint: 'ເຊັ່ນ: 3 (ວິຊາ)');
+  }
+  return (label: 'ຈຳນວນມື້', hint: 'ເຊັ່ນ: 60 (ມື້)');
+}
 
 class DiscountsScreen extends ConsumerStatefulWidget {
   const DiscountsScreen({super.key});
@@ -28,6 +37,7 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
   bool isEditing = false;
 
   final _amountController = TextEditingController();
+  final _thresholdController = TextEditingController();
   String? _selectedDescription;
   String? _selectedAcademicId;
 
@@ -48,6 +58,7 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
 
   void _resetForm() {
     _amountController.clear();
+    _thresholdController.clear();
     _selectedDescription = null;
     _selectedAcademicId = null;
     selectedItem = null;
@@ -64,6 +75,7 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
 
   void _openEdit(DiscountModel item) {
     _amountController.text = item.discountAmount.toStringAsFixed(0);
+    _thresholdController.text = item.thresholdValue.toString();
     _selectedDescription =
         _discountDescriptionLabels.contains(item.discountDescription)
         ? item.discountDescription
@@ -82,8 +94,11 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
 
   Future<void> _save() async {
     final amount = double.tryParse(_amountController.text.trim());
+    final threshold = int.tryParse(_thresholdController.text.trim());
     if (amount == null ||
         amount <= 0 ||
+        threshold == null ||
+        threshold <= 0 ||
         _selectedDescription == null ||
         _selectedAcademicId == null) {
       return;
@@ -92,6 +107,7 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
       academicId: _selectedAcademicId!,
       discountAmount: amount,
       discountDescription: _selectedDescription!,
+      thresholdValue: threshold,
     );
     bool success;
     if (isEditing && selectedItem != null) {
@@ -144,6 +160,7 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
   @override
   void dispose() {
     _amountController.dispose();
+    _thresholdController.dispose();
     super.dispose();
   }
 
@@ -163,6 +180,17 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
         key: 'discountDescription',
         label: 'ເງື່ອນໄຂສ່ວນຫຼຸດ',
         flex: 4,
+      ),
+      DataColumnDef<DiscountModel>(
+        key: 'thresholdValue',
+        label: 'ຄ່າເງື່ອນໄຂ',
+        flex: 2,
+        render: (context, item) => Text(
+          item.discountDescription == _multiSubjectLabel
+              ? '${item.thresholdValue} ວິຊາ'
+              : '${item.thresholdValue} ມື້',
+          style: const TextStyle(fontSize: 13, color: AppColors.foreground),
+        ),
       ),
       DataColumnDef<DiscountModel>(
         key: 'discountAmount',
@@ -220,6 +248,7 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
         discountId: (1000 + index + 1).toString(),
         discountDescription: localizeDiscountDescription('MULTI_SUBJECT'),
         discountAmount: 10.0 + index * 5,
+        thresholdValue: 3,
         academicYear: '2024-2025',
       ),
     );
@@ -228,7 +257,8 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
   bool get _isFormValid {
     return _selectedAcademicId != null &&
         _selectedDescription != null &&
-        _amountController.text.isNotEmpty;
+        _amountController.text.isNotEmpty &&
+        _thresholdController.text.isNotEmpty;
   }
 
   Widget _buildFormModal() {
@@ -293,6 +323,19 @@ class _DiscountsScreenState extends ConsumerState<DiscountsScreen> {
                     .map((d) => DropdownMenuItem(value: d, child: Text(d)))
                     .toList(),
                 onChanged: (v) => setState(() => _selectedDescription = v),
+              ),
+              const SizedBox(height: 16),
+              AppTextField(
+                label: _thresholdFieldMeta(_selectedDescription).label,
+                hint: _thresholdFieldMeta(_selectedDescription).hint,
+                controller: _thresholdController,
+                required: true,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => setState(() {}),
+                digitOnly: DigitOnly.integer,
+                noLeadingZero: true,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
               ),
               const SizedBox(height: 16),
               AppTextField(

@@ -11,7 +11,6 @@ import '../../widgets/app_data_table.dart';
 import '../../widgets/app_dialog.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/app_date_field.dart';
-import '../../widgets/app_dropdown.dart';
 import '../../widgets/app_button.dart';
 
 class _AcademicYearInputFormatter extends TextInputFormatter {
@@ -47,6 +46,11 @@ class _AcademicYearsScreenState extends ConsumerState<AcademicYearsScreen> {
   bool showDeleteDialog = false;
   AcademicYearModel? selectedItem;
   bool isEditing = false;
+
+  /// ສົກຮຽນທີ່ກຳລັງປ່ຽນສະຖານະຢູ່ (ໃຊ້ປິດ toggle ທັງໝົດໃນລະຫວ່າງບັນທຶກ)
+  String? statusUpdatingId;
+  AcademicYearModel? pendingStatusItem;
+  bool pendingStatusValue = false;
 
   final _yearController = TextEditingController();
   final _startDateController = TextEditingController();
@@ -246,6 +250,45 @@ class _AcademicYearsScreenState extends ConsumerState<AcademicYearsScreen> {
     }
   }
 
+  void _confirmStatusChange(AcademicYearModel item, bool makeActive) {
+    if (item.academicId == null) return;
+    setState(() {
+      pendingStatusItem = item;
+      pendingStatusValue = makeActive;
+    });
+  }
+
+  Future<void> _applyStatusChange() async {
+    final item = pendingStatusItem;
+    if (item?.academicId == null) return;
+
+    final academicId = item!.academicId!;
+    setState(() {
+      statusUpdatingId = academicId;
+      pendingStatusItem = null;
+    });
+
+    final success = await ref
+        .read(academicYearProvider.notifier)
+        .updateAcademicYearStatus(
+          academicId,
+          pendingStatusValue ? 'ACTIVE' : 'ENDED',
+        );
+
+    if (!mounted) return;
+    setState(() {
+      statusUpdatingId = null;
+    });
+
+    if (!success) {
+      ApiErrorHandler.handle(
+        context,
+        ref.read(academicYearProvider).error ??
+            'ເກີດຂໍ້ຜິດພາດໃນການປ່ຽນສະຖານະສົກຮຽນ',
+      );
+    }
+  }
+
   void _confirmDelete(AcademicYearModel item) => setState(() {
     selectedItem = item;
     showDeleteDialog = true;
@@ -322,14 +365,48 @@ class _AcademicYearsScreenState extends ConsumerState<AcademicYearsScreen> {
         key: 'academicStatus',
         label: 'ສະຖານະ',
         flex: 2,
-        render: (value, row) => Text(
-          value,
-          style: TextStyle(
-            color: _statusColor(value),
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
+        render: (value, row) {
+          final isActive = isActiveAcademicStatus(value);
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ໃຊ້ WidgetStateProperty ເພື່ອຄວບຄຸມສີເອງ ລວມທັງຕອນ disabled
+              // ໃນລະຫວ່າງກຳລັງບັນທຶກສະຖານະ.
+              Switch(
+                value: isActive,
+                thumbColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? Colors.white
+                      : AppColors.mutedForeground,
+                ),
+                trackColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? AppColors.primary
+                      : AppColors.muted,
+                ),
+                trackOutlineColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? AppColors.primary
+                      : AppColors.border,
+                ),
+                onChanged: statusUpdatingId != null
+                    ? null
+                    : (v) => _confirmStatusChange(row, v),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    color: _statusColor(value),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     ];
 
@@ -358,6 +435,7 @@ class _AcademicYearsScreenState extends ConsumerState<AcademicYearsScreen> {
         ),
         if (showAddEditModal) _buildFormModal(),
         if (showDeleteDialog) _buildDeleteDialog(),
+        if (pendingStatusItem != null) _buildStatusDialog(),
       ],
     );
   }
@@ -444,17 +522,101 @@ class _AcademicYearsScreenState extends ConsumerState<AcademicYearsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              AppDropdown<String>(
-                label: 'ສະຖານະ',
-                value: _selectedStatus,
-                items: ['ດໍາເນີນການ', 'ສິ້ນສຸດ']
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (v) => setState(() {
-                  if (v != null) _selectedStatus = v;
-                }),
+              if (!isEditing) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: AppColors.success,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'ສົກຮຽນໃໝ່ຈະຖືກຕັ້ງເປັນ "ດໍາເນີນການ" ແລະ ສົກຮຽນເກົ່າຈະຖືກປ່ຽນເປັນ "ສິ້ນສຸດ"',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.foreground,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusDialog() {
+    final item = pendingStatusItem;
+    if (item == null) return const SizedBox.shrink();
+
+    final currentActive = ref
+        .watch(academicYearProvider)
+        .academicYears
+        .where(
+          (ay) =>
+              isActiveAcademicStatus(ay.academicStatus) &&
+              ay.academicId != item.academicId,
+        )
+        .firstOrNull;
+
+    final makeActive = pendingStatusValue;
+    final message = makeActive
+        ? (currentActive != null
+              ? 'ຕັ້ງ "${item.academicYear}" ເປັນສົກຮຽນດໍາເນີນການ ແລະ ປ່ຽນ "${currentActive.academicYear}" ເປັນສິ້ນສຸດ?'
+              : 'ຕັ້ງ "${item.academicYear}" ເປັນສົກຮຽນດໍາເນີນການ?')
+        : 'ປ່ຽນ "${item.academicYear}" ເປັນສົກຮຽນສິ້ນສຸດ?\n'
+              'ຈະບໍ່ມີສົກຮຽນດໍາເນີນການຈົນກວ່າຈະຕັ້ງສົກຮຽນອື່ນ';
+
+    void close() => setState(() => pendingStatusItem = null);
+
+    return Material(
+      color: Colors.black54,
+      child: Center(
+        child: AppDialog(
+          title: 'ຢືນຢັນການປ່ຽນສະຖານະ',
+          size: AppDialogSize.small,
+          onClose: close,
+          footer: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              AppButton(
+                label: 'ຍົກເລີກ',
+                variant: AppButtonVariant.ghost,
+                onPressed: close,
               ),
+              const SizedBox(width: 12),
+              AppButton(
+                label: 'ຢືນຢັນ',
+                icon: Icons.check,
+                onPressed: _applyStatusChange,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.foreground,
+                ),
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

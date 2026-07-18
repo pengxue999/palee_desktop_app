@@ -95,6 +95,24 @@ class AcademicYearNotifier extends StateNotifier<AcademicYearState> {
     }
   }
 
+  /// ປ່ຽນສະຖານະສົກຮຽນ. ຖ້າຕັ້ງເປັນ ACTIVE ຝັ່ງ API ຈະປ່ຽນສົກຮຽນອື່ນເປັນ ENDED
+  /// ໃຫ້ອັດຕະໂນມັດ ດັ່ງນັ້ນຈຶ່ງຕ້ອງດຶງລາຍການໃໝ່ທັງໝົດ.
+  Future<bool> updateAcademicYearStatus(
+    String academicId,
+    String status,
+  ) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _service.updateAcademicYearStatus(academicId, status);
+      final refreshed = await _service.getAcademicYears();
+      state = state.copyWith(academicYears: refreshed.data, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+      return false;
+    }
+  }
+
   Future<bool> deleteAcademicYear(String academicId) async {
     state = state.copyWith(isLoading: true, error: null);
     try {

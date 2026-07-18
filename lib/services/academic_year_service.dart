@@ -30,6 +30,17 @@ class AcademicYearService {
     return AcademicYearSingleResponse.fromJson(_http.handleJson(response));
   }
 
+  Future<AcademicYearSingleResponse> updateAcademicYearStatus(
+    String academicId,
+    String status,
+  ) async {
+    final response = await _http.patch(
+      '/academic-years/$academicId/status',
+      body: {'status': status},
+    );
+    return AcademicYearSingleResponse.fromJson(_http.handleJson(response));
+  }
+
   Future<void> deleteAcademicYear(String academicId) async {
     final response = await _http.delete('/academic-years/$academicId');
     _http.handleJson(response);

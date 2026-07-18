@@ -4,12 +4,14 @@ class DiscountModel {
   final String discountId;
   final double discountAmount;
   final String discountDescription;
+  final int thresholdValue;
   final String academicYear;
 
   const DiscountModel({
     required this.discountId,
     required this.discountAmount,
     required this.discountDescription,
+    required this.thresholdValue,
     required this.academicYear,
   });
 
@@ -21,6 +23,8 @@ class DiscountModel {
       discountDescription: localizeDiscountDescription(
         json['discount_description'] as String?,
       ),
+      thresholdValue:
+          int.tryParse(json['threshold_value']?.toString() ?? '0') ?? 0,
       academicYear: json['academic_year']?.toString() ?? '',
     );
   }
@@ -33,6 +37,8 @@ class DiscountModel {
         return discountAmount;
       case 'discountDescription':
         return discountDescription;
+      case 'thresholdValue':
+        return thresholdValue;
       case 'academicYear':
         return academicYear;
       default:
@@ -45,17 +51,20 @@ class DiscountRequest {
   final String academicId;
   final double discountAmount;
   final String discountDescription;
+  final int thresholdValue;
 
   const DiscountRequest({
     required this.academicId,
     required this.discountAmount,
     required this.discountDescription,
+    required this.thresholdValue,
   });
 
   Map<String, dynamic> toJson() => {
     'academic_id': academicId,
     'discount_amount': discountAmount,
     'discount_description': apiDiscountDescription(discountDescription),
+    'threshold_value': thresholdValue,
   };
 }
 

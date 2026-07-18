@@ -22,7 +22,7 @@ const Map<String, String> _paymentMethodLabels = {
 };
 
 const Map<String, String> _discountDescriptionLabels = {
-  'MULTI_SUBJECT': 'ຮຽນ 3 ວິຊາຂຶ້ນໄປ',
+  'MULTI_SUBJECT': 'ຮຽນຫຼາຍວິຊາ',
   'LATE_REGISTRATION': 'ລົງທະບຽນຮຽນຊ້າ',
 };
 

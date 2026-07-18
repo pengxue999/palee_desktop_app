@@ -219,6 +219,7 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
         discountId: '',
         discountAmount: 0,
         discountDescription: '',
+        thresholdValue: 0,
         academicYear: '',
       ),
     );
@@ -321,7 +322,7 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
     }
   }
 
-  static const String _multiSubjectDiscountDescription = 'ຮຽນ 3 ວິຊາຂຶ້ນໄປ';
+  static const String _multiSubjectDiscountDescription = 'ຮຽນຫຼາຍວິຊາ';
   static const String _lateRegistrationDiscountDescription = 'ລົງທະບຽນຮຽນຊ້າ';
   static const int _lateRegistrationThresholdDays = 14;
 
