@@ -42,6 +42,8 @@ class ApiErrorHandler {
   }
 
   static String _extractMessage(String error) {
+    error = _stripExceptionPrefix(error);
+
     final jsonStart = error.indexOf('{');
     final jsonEnd = error.lastIndexOf('}');
 
@@ -62,6 +64,15 @@ class ApiErrorHandler {
     }
 
     return error;
+  }
+
+  static String _stripExceptionPrefix(String error) {
+    var result = error.trim();
+    final pattern = RegExp(r'^[A-Za-z]*Exception:\s*');
+    while (pattern.hasMatch(result)) {
+      result = result.replaceFirst(pattern, '').trim();
+    }
+    return result;
   }
 
   static String _codeToMessage(String code) {

@@ -137,7 +137,7 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
   }
 
   List<DiscountModel> get _selectableDiscounts {
-    if (_selectedFeeIds.length >= 3 && !_hasScholarshipFee) return _discounts;
+    if (_meetsMultiSubjectThreshold && !_hasScholarshipFee) return _discounts;
     return _discounts
         .where((d) => d.discountDescription != _multiSubjectDiscountDescription)
         .toList();
@@ -324,16 +324,35 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
 
   static const String _multiSubjectDiscountDescription = 'ຮຽນຫຼາຍວິຊາ';
   static const String _lateRegistrationDiscountDescription = 'ລົງທະບຽນຮຽນຊ້າ';
-  static const int _lateRegistrationThresholdDays = 14;
+
+  DiscountModel? _discountByDescription(String description) {
+    final matches = _discounts.where(
+      (d) => d.discountDescription == description,
+    );
+    return matches.isEmpty ? null : matches.first;
+  }
+
+  DiscountModel? get _multiSubjectDiscount =>
+      _discountByDescription(_multiSubjectDiscountDescription);
+
+  DiscountModel? get _lateRegistrationDiscount =>
+      _discountByDescription(_lateRegistrationDiscountDescription);
+
+  bool get _meetsMultiSubjectThreshold {
+    final discount = _multiSubjectDiscount;
+    if (discount == null) return false;
+    return _selectedFeeIds.length >= discount.thresholdValue;
+  }
 
   bool get _isLateRegistration {
-    final startDateRaw = _activeAcademicYear?.startDate ?? '';
-    final startDate = _parseAcademicDate(startDateRaw);
+    final discount = _lateRegistrationDiscount;
+    if (discount == null) return false;
+    final startDate = _parseAcademicDate(_activeAcademicYear?.startDate ?? '');
     if (startDate == null) return false;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final lateThreshold = startDate.add(
-      const Duration(days: _lateRegistrationThresholdDays),
+      Duration(days: discount.thresholdValue),
     );
     return !today.isBefore(lateThreshold);
   }
@@ -418,19 +437,9 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
   DiscountModel? get _autoEligibleDiscount {
     if (_hasScholarshipFee) return null;
 
-    if (_selectedFeeIds.length >= 3) {
-      final multiSubjectDiscount = _discounts.where(
-        (d) => d.discountDescription == _multiSubjectDiscountDescription,
-      );
-      if (multiSubjectDiscount.isNotEmpty) return multiSubjectDiscount.first;
-    }
-
-    if (_isLateRegistration) {
-      final lateDiscount = _discounts.where(
-        (d) => d.discountDescription == _lateRegistrationDiscountDescription,
-      );
-      if (lateDiscount.isNotEmpty) return lateDiscount.first;
-    }
+    // ລຳດັບດຽວກັນກັບ backend: multi-subject ກ່ອນ, ແລ້ວຄ່ອຍ late.
+    if (_meetsMultiSubjectThreshold) return _multiSubjectDiscount;
+    if (_isLateRegistration) return _lateRegistrationDiscount;
 
     return null;
   }
