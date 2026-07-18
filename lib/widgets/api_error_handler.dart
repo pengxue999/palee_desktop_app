@@ -46,11 +46,9 @@ class ApiErrorHandler {
 
     final jsonStart = error.indexOf('{');
     final jsonEnd = error.lastIndexOf('}');
-
     if (jsonStart == -1 || jsonEnd == -1 || jsonEnd <= jsonStart) {
       return error;
     }
-
     try {
       final jsonString = error.substring(jsonStart, jsonEnd + 1);
       final Map<String, dynamic> body = jsonDecode(jsonString);
