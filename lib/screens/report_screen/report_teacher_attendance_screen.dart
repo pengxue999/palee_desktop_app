@@ -13,6 +13,7 @@ import 'package:palee_elite_training_center/services/teacher_service.dart';
 import 'package:palee_elite_training_center/widgets/app_button.dart';
 import 'package:palee_elite_training_center/widgets/app_data_table.dart';
 import 'package:palee_elite_training_center/widgets/app_dropdown.dart';
+import 'package:palee_elite_training_center/widgets/app_searchable_dropdown.dart';
 import 'package:palee_elite_training_center/widgets/print_preparation_overlay.dart';
 import 'package:palee_elite_training_center/widgets/summary_card.dart';
 
@@ -332,15 +333,25 @@ class _ReportTeacherAttendanceScreenState
             children: [
               SizedBox(
                 width: 200,
-                child: AppDropdown<String>(
-                  value: _selectedTeacherId,
+                child: AppSearchableDropdown<String?>(
+                  value: _teachers.any((t) => t.teacherId == _selectedTeacherId)
+                      ? _selectedTeacherId
+                      : null,
                   hint: 'ທັງໝົດອາຈານ',
-                  items: _teachers.map((t) {
-                    return DropdownMenuItem(
-                      value: t.teacherId,
-                      child: Text(t.fullName),
-                    );
-                  }).toList(),
+                  searchHint: 'ຄົ້ນຫາຊື່ອາຈານ...',
+                  emptyText: 'ບໍ່ພົບອາຈານ',
+                  items: [
+                    AppSearchableItem<String?>(
+                      value: null,
+                      label: 'ທັງໝົດອາຈານ',
+                    ),
+                    ..._teachers.map(
+                      (t) => AppSearchableItem<String?>(
+                        value: t.teacherId,
+                        label: t.fullName,
+                      ),
+                    ),
+                  ],
                   onChanged: (value) {
                     setState(() => _selectedTeacherId = value);
                     _loadData();

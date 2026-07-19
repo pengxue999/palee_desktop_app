@@ -10,8 +10,6 @@ class RightPanel extends StatelessWidget {
   final List<FeeModel> selectedFees;
   final ValueChanged<String> onRemove;
   final String academicYear;
-  final String registrationDate;
-  final String? studentName;
   final int tuitionFee;
   final int totalFee;
   final int discount;
@@ -39,8 +37,6 @@ class RightPanel extends StatelessWidget {
     required this.selectedFees,
     required this.onRemove,
     required this.academicYear,
-    required this.registrationDate,
-    required this.studentName,
     required this.tuitionFee,
     required this.totalFee,
     required this.discount,
@@ -78,8 +74,6 @@ class RightPanel extends StatelessWidget {
         SummarySection(
           stepNum: step4num,
           academicYear: academicYear,
-          registrationDate: registrationDate,
-          studentName: studentName,
           tuitionFee: tuitionFee,
           totalFee: totalFee,
           discount: discount,

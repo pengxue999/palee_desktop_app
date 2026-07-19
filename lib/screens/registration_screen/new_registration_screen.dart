@@ -87,9 +87,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
 
   final Set<String> _selectedFeeIds = {};
 
-  String? _selectedDiscountId;
-  // ສ່ວນຫຼຸດທີ່ລະບົບເລືອກໃຫ້ໂດຍອັດຕະໂນມັດ (ໃຊ້ກວດສອບວ່າຄວນຍ້າຍ/ລົບ ໂດຍບໍ່ທັບການເລືອກດ້ວຍມື).
-  String? _autoAppliedDiscountId;
   Map<String, String> _scholarshipStatusByFee = {};
   bool _autoRenew = false;
 
@@ -135,17 +132,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
         .where((discount) => discount.academicYear == activeAcademicYear)
         .toList();
   }
-
-  List<DiscountModel> get _selectableDiscounts {
-    if (_meetsMultiSubjectThreshold && !_hasScholarshipFee) return _discounts;
-    return _discounts
-        .where((d) => d.discountDescription != _multiSubjectDiscountDescription)
-        .toList();
-  }
-
-  bool get _hasScholarshipFee => _selectedFeeIds.any(
-    (feeId) => _scholarshipStatusByFee[feeId] == 'ໄດ້ຮັບທຶນ',
-  );
 
   List<StudentModel> get _apiStudents => ref.watch(studentProvider).students;
   List<Student> get _studentsFromApi {
@@ -204,36 +190,15 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
 
   int get _totalFee => _tuitionFee;
 
-  // ຄ່າສະແດງຜົນ — ໃຫ້ຄ່າຈາກ backend preview ມາກ່ອນ, ບໍ່ດັ່ງນັ້ນຄ່ອຍ fallback ໃຊ້ການປະມານ.
+  // ສ່ວນຫຼຸດ ແລະ ຈຳນວນເງິນ ຄິດຢູ່ backend ຢ່າງດຽວ — frontend ພຽງແຕ່ສະແດງຜົນ.
+  // ຖ້າ preview ຍັງບໍ່ມາ ໃຫ້ສະແດງລາຄາເຕັມໄວ້ກ່ອນ ດີກວ່າເດົາສ່ວນຫຼຸດເອງ.
   int get _displayTotalFee => _preview?.totalAmount.round() ?? _totalFee;
 
-  int get _selectedDiscountAmount {
-    final preview = _preview;
-    if (preview != null) return preview.discountAmount.round();
+  String? get _selectedDiscountId => _preview?.discountId;
 
-    if (_selectedDiscountId == null) return 0;
+  int get _selectedDiscountAmount => _preview?.discountAmount.round() ?? 0;
 
-    final discount = _discounts.firstWhere(
-      (d) => d.discountId == _selectedDiscountId,
-      orElse: () => const DiscountModel(
-        discountId: '',
-        discountAmount: 0,
-        discountDescription: '',
-        thresholdValue: 0,
-        academicYear: '',
-      ),
-    );
-    final discountPercentage = discount.discountAmount.toInt();
-    return ((_tuitionFee * discountPercentage) / 100).round();
-  }
-
-  int get _netFee {
-    final preview = _preview;
-    if (preview != null) return preview.finalAmount.round();
-
-    final amount = _totalFee - _selectedDiscountAmount;
-    return amount < 0 ? 0 : amount;
-  }
+  int get _netFee => _preview?.finalAmount.round() ?? _totalFee;
 
   String get _academicYearFromFees {
     if (_selectedFeeIds.isEmpty) return _currentAcademicYear;
@@ -276,8 +241,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
       _existingDetailIdByFee.clear();
       _existingRegistration = null;
       _preview = null;
-      _selectedDiscountId = null;
-      _autoAppliedDiscountId = null;
     });
     _loadExistingRegistration(s.id);
   }
@@ -322,56 +285,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
     }
   }
 
-  static const String _multiSubjectDiscountDescription = 'ຮຽນຫຼາຍວິຊາ';
-  static const String _lateRegistrationDiscountDescription = 'ລົງທະບຽນຮຽນຊ້າ';
-
-  DiscountModel? _discountByDescription(String description) {
-    final matches = _discounts.where(
-      (d) => d.discountDescription == description,
-    );
-    return matches.isEmpty ? null : matches.first;
-  }
-
-  DiscountModel? get _multiSubjectDiscount =>
-      _discountByDescription(_multiSubjectDiscountDescription);
-
-  DiscountModel? get _lateRegistrationDiscount =>
-      _discountByDescription(_lateRegistrationDiscountDescription);
-
-  bool get _meetsMultiSubjectThreshold {
-    final discount = _multiSubjectDiscount;
-    if (discount == null) return false;
-    return _selectedFeeIds.length >= discount.thresholdValue;
-  }
-
-  bool get _isLateRegistration {
-    final discount = _lateRegistrationDiscount;
-    if (discount == null) return false;
-    final startDate = _parseAcademicDate(_activeAcademicYear?.startDate ?? '');
-    if (startDate == null) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final lateThreshold = startDate.add(
-      Duration(days: discount.thresholdValue),
-    );
-    return !today.isBefore(lateThreshold);
-  }
-
-  // ວັນທີຈາກ API ມາໃນຮູບແບບ dd-MM-yyyy.
-  DateTime? _parseAcademicDate(String value) {
-    if (value.isEmpty) return null;
-    final parts = value.split('-');
-    if (parts.length == 3) {
-      final day = int.tryParse(parts[0]);
-      final month = int.tryParse(parts[1]);
-      final year = int.tryParse(parts[2]);
-      if (day != null && month != null && year != null) {
-        return DateTime(year, month, day);
-      }
-    }
-    return DateTime.tryParse(value);
-  }
-
   void _toggleFee(String feeId) {
     if (_selectedStudent == null) return;
 
@@ -401,7 +314,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
       } else if (_selectedFeeIds.isEmpty && _currentStep > 2) {
         _currentStep = 2;
       }
-      _applyAutoDiscount();
     });
     _fetchPreview();
   }
@@ -434,38 +346,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
     }
   }
 
-  DiscountModel? get _autoEligibleDiscount {
-    if (_hasScholarshipFee) return null;
-
-    // ລຳດັບດຽວກັນກັບ backend: multi-subject ກ່ອນ, ແລ້ວຄ່ອຍ late.
-    if (_meetsMultiSubjectThreshold) return _multiSubjectDiscount;
-    if (_isLateRegistration) return _lateRegistrationDiscount;
-
-    return null;
-  }
-
-  void _applyAutoDiscount() {
-    final eligible = _autoEligibleDiscount;
-
-    if (eligible != null) {
-      final isManualSelection =
-          _selectedDiscountId != null &&
-          _selectedDiscountId != _autoAppliedDiscountId;
-      if (!isManualSelection) {
-        _selectedDiscountId = eligible.discountId;
-        _autoAppliedDiscountId = eligible.discountId;
-      }
-      return;
-    }
-
-    // ບໍ່ມີສ່ວນຫຼຸດທີ່ເຂົ້າເງື່ອນໄຂແລ້ວ — ລົບສະເພາະຄ່າທີ່ລະບົບເຄີຍເລືອກໃຫ້.
-    if (_selectedDiscountId != null &&
-        _selectedDiscountId == _autoAppliedDiscountId) {
-      _selectedDiscountId = null;
-    }
-    _autoAppliedDiscountId = null;
-  }
-
   void _setScholarshipStatus(String feeId, String status) {
     // ວິຊາທີ່ບັນທຶກໄວ້ແລ້ວ → ປ່ຽນຜ່ານ API (ກວດ lock + recompute).
     if (_isExistingFee(feeId)) {
@@ -481,10 +361,7 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
       await _clearOtherScholarships(feeId);
       if (!mounted) return;
     }
-    setState(() {
-      _scholarshipStatusByFee[feeId] = status;
-      _applyAutoDiscount();
-    });
+    setState(() => _scholarshipStatusByFee[feeId] = status);
     _fetchPreview();
   }
 
@@ -615,8 +492,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
       _searchCtrl.clear();
       _autoRenew = false;
       _currentStep = 1;
-      _selectedDiscountId = null;
-      _autoAppliedDiscountId = null;
       _scholarshipStatusByFee = {};
       _preview = null;
       _previewToken++;
@@ -645,7 +520,7 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
     // backend ຈະຄຳນວນສ່ວນຫຼຸດ/ຈຳນວນເງິນຄືນ — ຄ່າທີ່ສົ່ງໄປແມ່ນເພື່ອອ້າງອີງເທົ່ານັ້ນ.
     final request = RegistrationRequest(
       studentId: _selectedStudent!.id,
-      discountId: _preview?.discountId ?? _selectedDiscountId,
+      discountId: _preview?.discountId,
       totalAmount: _displayTotalFee.toDouble(),
       finalAmount: _netFee.toDouble(),
       status: 'UNPAID',
@@ -759,19 +634,14 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
                       academicYear: _selectedFeeIds.isNotEmpty
                           ? _academicYearFromFees
                           : _displayAcademicYear,
-                      registrationDate: _fmtDate(DateTime.now()),
-                      studentName: _selectedStudent?.fullName,
                       tuitionFee: _tuitionFee,
                       totalFee: _displayTotalFee,
                       discount: _selectedDiscountAmount,
                       netFee: _netFee,
-                      discounts: _selectableDiscounts,
+                      discounts: _discounts,
+                      // ສ່ວນຫຼຸດຖືກກຳນົດໂດຍ backend — ບໍ່ມີການເລືອກດ້ວຍມື.
                       selectedDiscountId: _selectedDiscountId,
-                      onDiscountChanged: (v) => setState(() {
-                        // ການເລືອກດ້ວຍມືຈະລົບລ້າງສະຖານະການເລືອກອັດຕະໂນມັດ.
-                        _selectedDiscountId = v;
-                        _autoAppliedDiscountId = null;
-                      }),
+                      onDiscountChanged: (_) {},
                       scholarshipStatusByFee: _scholarshipStatusByFee,
                       onScholarshipChanged: (feeId, status) =>
                           _setScholarshipStatus(feeId, status),
@@ -860,24 +730,6 @@ class _NewRegistrationScreenState extends ConsumerState<NewRegistrationScreen> {
         ],
       ),
     );
-  }
-
-  String _fmtDate(DateTime dt) {
-    const m = [
-      'ມັງກອນ',
-      'ກຸມພາ',
-      'ມີນາ',
-      'ເມສາ',
-      'ພຶດສະພາ',
-      'ມິຖຸນາ',
-      'ກໍລະກົດ',
-      'ສິງຫາ',
-      'ກັນຍາ',
-      'ຕຸລາ',
-      'ພະຈິກ',
-      'ທັນວາ',
-    ];
-    return '${m[dt.month - 1]} ${dt.day}, ${dt.year}';
   }
 }
 
@@ -1099,8 +951,20 @@ class _AddStudentDialogState extends ConsumerState<_AddStudentDialog> {
   bool _isSaving = false;
 
   List<ProvinceModel> get _provinces => ref.watch(provinceProvider).provinces;
-  List<DistrictModel> get _districts =>
-      ref.watch(districtProvider).filteredDistricts;
+
+  /// ດຶງເມືອງທັງໝົດມາຄັ້ງດຽວ ແລ້ວກັ່ນຕອງຢູ່ໜ້າຈໍ ບໍ່ຕ້ອງເອີ້ນ API ຄືນເມື່ອປ່ຽນແຂວງ
+  List<DistrictModel> get _districts {
+    if (_selectedProvinceId == null) return const [];
+    final matches = _provinces.where((p) => p.provinceId == _selectedProvinceId);
+    if (matches.isEmpty) return const [];
+    final provinceName = matches.first.provinceName;
+    return ref
+        .watch(districtProvider)
+        .districts
+        .where((d) => d.provinceName == provinceName)
+        .toList();
+  }
+
   bool get _isLoadingProvinces => ref.watch(provinceProvider).isLoading;
   bool get _isLoadingDistricts => ref.watch(districtProvider).isLoading;
 
@@ -1123,6 +987,7 @@ class _AddStudentDialogState extends ConsumerState<_AddStudentDialog> {
     _schoolCtrl.addListener(_onFormChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(provinceProvider.notifier).getProvinces();
+      ref.read(districtProvider.notifier).getDistricts();
     });
   }
 
@@ -1276,16 +1141,11 @@ class _AddStudentDialogState extends ConsumerState<_AddStudentDialog> {
           selectedProvinceId: _selectedProvinceId,
           selectedDistrictId: _selectedDistrictId,
           availableDistricts: _districts,
-          onProvinceChanged: (value) async {
+          onProvinceChanged: (value) {
             setState(() {
               _selectedProvinceId = value;
               _selectedDistrictId = null;
             });
-            if (value != null) {
-              await ref
-                  .read(districtProvider.notifier)
-                  .getDistrictsByProvince(value);
-            }
           },
           onDistrictChanged: (value) =>
               setState(() => _selectedDistrictId = value),

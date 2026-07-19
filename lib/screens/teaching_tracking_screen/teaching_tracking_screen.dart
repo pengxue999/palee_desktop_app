@@ -14,6 +14,7 @@ import '../../services/teaching_log_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_data_table.dart';
 import '../../widgets/app_dropdown.dart';
+import '../../widgets/app_searchable_dropdown.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/app_toast.dart';
 import 'widgets/left_panel.dart';
@@ -693,16 +694,20 @@ class _TeachingTrackingScreenState
             ),
           ],
         ),
-        AppDropdown<String>(
+        AppSearchableDropdown<String>(
           label: 'ເລືອກອາຈານ',
           required: true,
-          value: _selectedTeacherId,
+          value: _teachers.any((t) => t.teacherId == _selectedTeacherId)
+              ? _selectedTeacherId
+              : null,
           hint: 'ເລືອກອາຈານ...',
+          searchHint: 'ຄົ້ນຫາຊື່ອາຈານ...',
+          emptyText: 'ບໍ່ພົບອາຈານ',
           items: _teachers
               .map(
-                (t) => DropdownMenuItem(
+                (t) => AppSearchableItem(
                   value: t.teacherId,
-                  child: Text('${t.teacherName} ${t.teacherLastname}'),
+                  label: '${t.teacherName} ${t.teacherLastname}',
                 ),
               )
               .toList(),
@@ -1283,16 +1288,20 @@ class _TeachingTrackingScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppDropdown<String>(
+        AppSearchableDropdown<String>(
           label: 'ເລືອກອາຈານທີ່ຈະສອນແທນ',
           required: true,
-          value: _subTeacherId,
+          value: availableTeachers.any((t) => t.teacherId == _subTeacherId)
+              ? _subTeacherId
+              : null,
           hint: 'ເລືອກອາຈານ...',
+          searchHint: 'ຄົ້ນຫາຊື່ອາຈານ...',
+          emptyText: 'ບໍ່ພົບອາຈານ',
           items: availableTeachers
               .map(
-                (t) => DropdownMenuItem(
+                (t) => AppSearchableItem(
                   value: t.teacherId,
-                  child: Text('${t.teacherName} ${t.teacherLastname}'),
+                  label: '${t.teacherName} ${t.teacherLastname}',
                 ),
               )
               .toList(),

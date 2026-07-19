@@ -13,6 +13,7 @@ import 'package:palee_elite_training_center/services/report_service.dart';
 import 'package:palee_elite_training_center/widgets/app_button.dart';
 import 'package:palee_elite_training_center/widgets/app_data_table.dart';
 import 'package:palee_elite_training_center/widgets/app_dropdown.dart';
+import 'package:palee_elite_training_center/widgets/app_searchable_dropdown.dart';
 import 'package:palee_elite_training_center/widgets/empty_widget.dart';
 import 'package:palee_elite_training_center/widgets/print_preparation_overlay.dart';
 import 'package:palee_elite_training_center/widgets/summary_card.dart';
@@ -208,7 +209,7 @@ class _ReportSalaryPaymentScreenState
   Widget _buildFilterSection({
     required bool hasData,
     required bool isLoading,
-    required List<DropdownMenuItem<String>> teacherItems,
+    required List<AppSearchableItem<String?>> teacherItems,
   }) {
     final isActionBusy = _isExporting || _isPreparingReportPrint || isLoading;
 
@@ -252,9 +253,13 @@ class _ReportSalaryPaymentScreenState
               const SizedBox(width: 12),
               SizedBox(
                 width: 240,
-                child: AppDropdown<String>(
-                  value: _selectedTeacherId,
+                child: AppSearchableDropdown<String?>(
+                  value: teacherItems.any((t) => t.value == _selectedTeacherId)
+                      ? _selectedTeacherId
+                      : null,
                   hint: 'ທັງໝົດອາຈານ',
+                  searchHint: 'ຄົ້ນຫາຊື່ອາຈານ...',
+                  emptyText: 'ບໍ່ພົບອາຈານ',
                   items: teacherItems,
                   onChanged: (value) {
                     setState(() => _selectedTeacherId = value);
@@ -371,14 +376,15 @@ class _ReportSalaryPaymentScreenState
         .where((item) => item.status != 'ຈ່າຍແລ້ວ')
         .length;
     final hasData = payments.isNotEmpty;
-    final teacherItems = teacherState.teachers
-        .map(
-          (teacher) => DropdownMenuItem(
-            value: teacher.teacherId,
-            child: Text('${teacher.teacherName} ${teacher.teacherLastname}'),
-          ),
-        )
-        .toList();
+    final teacherItems = <AppSearchableItem<String?>>[
+      AppSearchableItem<String?>(value: null, label: 'ທັງໝົດອາຈານ'),
+      ...teacherState.teachers.map(
+        (teacher) => AppSearchableItem<String?>(
+          value: teacher.teacherId,
+          label: '${teacher.teacherName} ${teacher.teacherLastname}',
+        ),
+      ),
+    ];
 
     final columns = [
       DataColumnDef<SalaryPaymentModel>(

@@ -15,6 +15,7 @@ import '../../widgets/app_data_table.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_dropdown.dart';
+import '../../widgets/app_searchable_dropdown.dart';
 import '../../widgets/app_toast.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_widget.dart';
@@ -295,22 +296,23 @@ class _ReportDonationScreenState extends ConsumerState<ReportDonationScreen> {
               const SizedBox(width: 12),
               SizedBox(
                 width: 200,
-                child: AppDropdown<String>(
-                  value: _selectedDonorId,
+                child: AppSearchableDropdown<String?>(
+                  value: donors.any((d) => d.donorId == _selectedDonorId)
+                      ? _selectedDonorId
+                      : null,
+                  searchHint: 'ຄົ້ນຫາຊື່ຜູ້ບໍລິຈາກ...',
+                  emptyText: 'ບໍ່ພົບຜູ້ບໍລິຈາກ',
                   items: [
-                    const DropdownMenuItem(
+                    AppSearchableItem<String?>(
                       value: null,
-                      child: Text('ທັງໝົດຜູ້ບໍລິຈາກ'),
+                      label: 'ທັງໝົດຜູ້ບໍລິຈາກ',
                     ),
-                    ...donors.map((donor) {
-                      return DropdownMenuItem(
+                    ...donors.map(
+                      (donor) => AppSearchableItem<String?>(
                         value: donor.donorId,
-                        child: Text(
-                          donor.fullName,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      );
-                    }),
+                        label: donor.fullName,
+                      ),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() => _selectedDonorId = value);

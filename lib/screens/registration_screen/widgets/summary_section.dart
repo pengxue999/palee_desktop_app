@@ -8,8 +8,6 @@ import 'package:palee_elite_training_center/screens/registration_screen/widgets/
 class SummarySection extends StatelessWidget {
   final int stepNum;
   final String academicYear;
-  final String registrationDate;
-  final String? studentName;
   final int tuitionFee;
   final int totalFee;
   final int discount;
@@ -26,8 +24,6 @@ class SummarySection extends StatelessWidget {
     super.key,
     required this.stepNum,
     required this.academicYear,
-    required this.registrationDate,
-    required this.studentName,
     required this.tuitionFee,
     required this.totalFee,
     required this.discount,
@@ -109,10 +105,6 @@ class SummarySection extends StatelessWidget {
           // ),
           // const Divider(height: 24),
           CustomDataRow(label: 'ສົກຮຽນ', value: academicYear),
-          const SizedBox(height: 4),
-          CustomDataRow(label: 'ວັນທີລົງທະບຽນ', value: registrationDate),
-          const SizedBox(height: 4),
-          CustomDataRow(label: 'ນັກຮຽນ', value: studentName ?? '—'),
           const Divider(height: 12),
           CustomDataRow(
             label: 'ລວມຄ່າຮຽນ',

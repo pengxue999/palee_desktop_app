@@ -15,6 +15,7 @@ import '../../widgets/app_data_table.dart';
 import '../../widgets/app_dialog.dart';
 import '../../widgets/app_editable_dropdown.dart';
 import '../../widgets/app_dropdown.dart';
+import '../../widgets/app_searchable_dropdown.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/app_date_field.dart';
 import '../../widgets/app_button.dart';
@@ -407,15 +408,19 @@ class _DonationScreenState extends ConsumerState<DonationScreen> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Expanded(
-                      child: AppDropdown<String>(
+                      child: AppSearchableDropdown<String>(
                         label: 'ຜູ້ບໍລິຈາກ',
                         hint: 'ເລືອກຜູ້ບໍລິຈາກ',
-                        value: _selectedDonorId,
+                        searchHint: 'ຄົ້ນຫາຊື່ຜູ້ບໍລິຈາກ...',
+                        emptyText: 'ບໍ່ພົບຜູ້ບໍລິຈາກ',
+                        value: _donors.any((d) => d.donorId == _selectedDonorId)
+                            ? _selectedDonorId
+                            : null,
                         items: _donors
                             .map(
-                              (d) => DropdownMenuItem(
+                              (d) => AppSearchableItem(
                                 value: d.donorId,
-                                child: Text(d.fullName),
+                                label: d.fullName,
                               ),
                             )
                             .toList(),
