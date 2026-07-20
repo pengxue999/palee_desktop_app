@@ -383,10 +383,10 @@ class _TeachingTrackingScreenState
       return;
     }
     final hourly = double.tryParse(_hourlyController.text.trim()) ?? 0.0;
-    if (hourly < 1) {
+    if (hourly < 1 || hourly > 2) {
       AppToast.show(
         context: context,
-        message: 'ກະລຸນາປ້ອນຈຳນວນຊົ່ວໂມງທີ່ສອນຢ່າງໜ້ອຍ 1 ຂຶ້ນໄປ',
+        message: 'ກະລຸນາປ້ອນຈຳນວນຊົ່ວໂມງທີ່ສອນ ລະຫວ່າງ 1 ຫາ 2',
         type: ToastType.warning,
       );
       return;
@@ -624,8 +624,9 @@ class _TeachingTrackingScreenState
           required: true,
           controller: _hourlyController,
           hint: '2',
-          digitOnly: DigitOnly.integer,
+          digitOnly: DigitOnly.decimal,
           noLeadingZero: true,
+          maxValue: 2,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -768,8 +769,9 @@ class _TeachingTrackingScreenState
             required: true,
             controller: _hourlyController,
             hint: '2',
-            digitOnly: DigitOnly.integer,
+            digitOnly: DigitOnly.decimal,
             noLeadingZero: true,
+            maxValue: 2,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),

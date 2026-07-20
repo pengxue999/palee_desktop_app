@@ -243,7 +243,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   onEdit: _openEdit,
                   onDelete: _confirmDelete,
                   canDelete: (item) => apiUserRole(item.role) != 'DIRECTOR',
-                  searchKeys: const ['username', 'fullName'],
+                  searchKeys: const ['userName'],
                   addLabel: 'ເພີ່ມຜູ້ໃຊ້',
                   isLoading: userState.isLoading,
                 ),

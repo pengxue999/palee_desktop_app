@@ -61,8 +61,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         final allowedRoutes = [
           '/',
           '/teaching-tracking',
-          '/evaluate-student',
-          '/assessment',
+          // ອາຈານບໍ່ໃຫ້ເຂົ້າເຖິງໜ້າ "ປະເມີນຜົນການຮຽນ" (EvaluateStudentScreen)
+          // '/evaluate-student',
+          // '/assessment',
         ];
         if (!allowedRoutes.contains(state.matchedLocation)) {
           return '/';

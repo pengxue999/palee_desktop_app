@@ -13,6 +13,10 @@ class Sidebar extends ConsumerStatefulWidget {
 
   const Sidebar({super.key, this.onTitleChange});
 
+  /// ຫົວຂໍ້ (label) ຂອງເມນູທີ່ກົງກັບ route ປັດຈຸບັນ.
+  static String? titleForLocation(String location) =>
+      _SidebarState.titleForLocation(location);
+
   @override
   ConsumerState<Sidebar> createState() => _SidebarState();
 }
@@ -29,7 +33,7 @@ class _SidebarState extends ConsumerState<Sidebar> {
 
   static const double _collapsedWidth = 64.0;
 
-  final List<MenuItemModel> menuItems = [
+  static final List<MenuItemModel> menuItems = [
     MenuItemModel(
       id: 'dashboard',
       label: 'ໜ້າຫຼັກ',
@@ -362,10 +366,43 @@ class _SidebarState extends ConsumerState<Sidebar> {
     ),
   ];
 
+  /// ຫາຫົວຂໍ້ (label) ຂອງເມນູທີ່ກົງກັບ route ປັດຈຸບັນ.
+  /// ໃຊ້ໃນ header ເພື່ອໃຫ້ຫົວຂໍ້ຂຶ້ນຖືກຕ້ອງສະເໝີ ໂດຍບໍ່ຕ້ອງລໍກົດເມນູກ່ອນ.
+  static String? titleForLocation(String location) {
+    final uri = Uri.parse(location);
+    final path = uri.path;
+    final type = uri.queryParameters['type'];
+
+    String? search(List<MenuItemModel> items) {
+      for (final item in items) {
+        final itemPath = item.path;
+        if (itemPath != null) {
+          final ip = Uri.parse(itemPath);
+          if (ip.path == path && ip.queryParameters['type'] == type) {
+            return item.label;
+          }
+        }
+        if (item.children != null) {
+          final found = search(item.children!);
+          if (found != null) return found;
+        }
+      }
+      return null;
+    }
+
+    final match = search(menuItems);
+    if (match != null) return match;
+
+    // ໜ້າຍ່ອຍທີ່ບໍ່ມີໃນເມນູໂດຍກົງ
+    if (path == '/registration/new') return 'ລົງທະບຽນ';
+    return null;
+  }
+
   static const Set<String> _teacherAllowedMenuIds = {
     'dashboard',
     'teaching-track',
-    'evaluate-student',
+    // ອາຈານບໍ່ໃຫ້ເຂົ້າເຖິງໜ້າ "ປະເມີນຜົນການຮຽນ" (EvaluateStudentScreen)
+    // 'evaluate-student',
   };
 
   List<MenuItemModel> _getFilteredMenuItems(String? role) {

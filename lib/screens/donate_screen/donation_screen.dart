@@ -54,7 +54,7 @@ class _DonationScreenState extends ConsumerState<DonationScreen> {
         _unitController.text.trim().isNotEmpty;
   }
 
-  final _formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -104,6 +104,10 @@ class _DonationScreenState extends ConsumerState<DonationScreen> {
     selectedItem = null;
     isEditing = false;
     _autoValidate = false;
+    // Use a fresh key for each modal instance so the previous Form element is
+    // never reactivated via a stale GlobalKey (which throws the framework
+    // "_elements.contains(element)" assertion when reopening after a save/edit).
+    _formKey = GlobalKey<FormState>();
   }
 
   void _openAdd() async {
@@ -142,6 +146,9 @@ class _DonationScreenState extends ConsumerState<DonationScreen> {
     _selectedDonorId = matchingDonor.donorId;
 
     _selectedCategoryId = item.donationCategoryId;
+
+    // Fresh key per modal instance — see note in _resetForm().
+    _formKey = GlobalKey<FormState>();
 
     setState(() {
       selectedItem = item;

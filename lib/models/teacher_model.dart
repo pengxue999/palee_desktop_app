@@ -25,6 +25,10 @@ class TeacherModel {
     switch (key) {
       case 'teacherId':
         return teacherId;
+      case 'teacherName':
+        return teacherName;
+      case 'teacherLastname':
+        return teacherLastname;
       case 'fullName':
         return fullName;
       case 'gender':

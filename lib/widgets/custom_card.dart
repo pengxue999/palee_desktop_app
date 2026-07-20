@@ -68,161 +68,109 @@ class _CustomCardState extends State<CustomCard>
     return MouseRegion(
       onEnter: _onEnter,
       onExit: _onExit,
-      cursor: SystemMouseCursors.click,
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : MouseCursor.defer,
       child: ScaleTransition(
         scale: _scaleAnim,
         child: GestureDetector(
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: _hovered
-                    ? widget.accentColor.withOpacity(0.25)
-                    : Colors.black.withOpacity(0.06),
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFFE9EDF2),
                 width: 1,
               ),
-              boxShadow: _hovered
-                  ? [
-                      BoxShadow(
-                        color: widget.accentColor.withOpacity(0.12),
-                        blurRadius: 24,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: _hovered ? 0.07 : 0.03),
+                  blurRadius: _hovered ? 20 : 10,
+                  offset: Offset(0, _hovered ? 8 : 3),
+                ),
+              ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    height: 3.5,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          widget.accentColor,
-                          widget.accentColor.withOpacity(0.4),
-                        ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.label,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF64748B),
+                          letterSpacing: 0.1,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    Icon(widget.icon, color: widget.iconColor, size: 22),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  widget.value,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    height: 1.1,
+                    letterSpacing: -0.8,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: widget.iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(13),
-                              ),
-                              child: Icon(
-                                widget.icon,
-                                color: widget.iconColor,
-                                size: 24,
-                              ),
+                ),
+                if (widget.subLabel != null || widget.badge != null) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      if (widget.badge != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: widget.iconBackgroundColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            widget.badge!,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: widget.iconColor,
                             ),
-                            const Spacer(),
-                            if (widget.badge != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 9,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: widget.iconBackgroundColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: widget.accentColor.withOpacity(0.2),
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: Text(
-                                  widget.badge!,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: widget.iconColor,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.label.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade500,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          widget.value,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF111827),
-                            height: 1.1,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        if (widget.subLabel != null) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: widget.accentColor.withOpacity(0.6),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  widget.subLabel!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade500,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        const SizedBox(width: 8),
                       ],
-                    ),
+                      if (widget.subLabel != null)
+                        Expanded(
+                          child: Text(
+                            widget.subLabel!,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: Color(0xFF94A3B8),
+                              fontWeight: FontWeight.w400,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
-              ),
+              ],
             ),
           ),
         ),

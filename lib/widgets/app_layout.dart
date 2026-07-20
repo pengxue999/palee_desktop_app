@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../core/constants/app_colors.dart';
 import '../core/utils/enum_localization.dart';
 import '../core/utils/responsive_utils.dart';
@@ -86,6 +87,9 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     final initials = userName.isNotEmpty
         ? userName.substring(0, userName.length >= 2 ? 2 : 1).toUpperCase()
         : 'U';
+    final location = GoRouterState.of(context).uri.toString();
+    final displayTitle =
+        Sidebar.titleForLocation(location) ?? _currentTitle ?? widget.title;
     return Container(
       height: 64,
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24),
@@ -112,10 +116,10 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
-          if (_currentTitle != null) ...[
+          if (displayTitle != null) ...[
             if (isMobile) const SizedBox(width: 8),
             Text(
-              _currentTitle ?? '',
+              displayTitle,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -126,26 +130,6 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
             ),
           ],
           const Spacer(),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.accent,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(
-                Icons.update,
-                color: AppColors.accentForeground,
-                size: 18,
-              ),
-              onPressed: () {},
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(width: 1, height: 32, color: AppColors.border),
-          const SizedBox(width: 12),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [

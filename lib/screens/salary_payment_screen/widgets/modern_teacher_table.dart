@@ -33,11 +33,21 @@ class ModernTeacherTable extends StatelessWidget {
           _buildHeader(),
           const Divider(height: 1, color: AppColors.border),
           Expanded(
-            child: isLoading && data.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : data.isEmpty
-                ? _buildEmptyState()
-                : _buildTableBody(),
+            child: Stack(
+              children: [
+                if (data.isEmpty && !isLoading)
+                  _buildEmptyState()
+                else if (data.isNotEmpty)
+                  _buildTableBody(),
+                if (isLoading)
+                  Positioned.fill(
+                    child: ColoredBox(
+                      color: AppColors.card.withValues(alpha: 0.6),
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
