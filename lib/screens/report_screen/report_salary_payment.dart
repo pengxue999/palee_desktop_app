@@ -37,7 +37,7 @@ class _ReportSalaryPaymentScreenState
   bool _isPreparingReportPrint = false;
   bool _isExporting = false;
 
-  static const List<String> _statusOptions = ['ຈ່າຍແລ້ວ', 'ຄ້າງຈ່າຍ'];
+  static const List<String> _statusOptions = ['ຈ່າຍແລ້ວ', 'ຈ່າຍບາງສ່ວນ'];
 
   @override
   void initState() {
@@ -459,7 +459,7 @@ class _ReportSalaryPaymentScreenState
                 ),
                 const SizedBox(width: 12),
                 SummaryCard(
-                  label: 'ຄ້າງຈ່າຍ',
+                  label: 'ຈ່າຍບາງສ່ວນ',
                   amount: pendingCount.toDouble(),
                   icon: Icons.pending_actions_rounded,
                   color: AppColors.warning,
