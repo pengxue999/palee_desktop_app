@@ -134,7 +134,6 @@ class _ReportStudentScreenState extends ConsumerState<ReportStudentScreen> {
   @override
   Widget build(BuildContext context) {
     final reportState = ref.watch(reportProvider);
-    final academicYearState = ref.watch(academicYearProvider);
     final provinceState = ref.watch(provinceProvider);
     final districtState = ref.watch(districtProvider);
     final hasStudentData = reportState.students.isNotEmpty;

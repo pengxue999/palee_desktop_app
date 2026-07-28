@@ -201,6 +201,7 @@ class ReportService {
     String? subjectId,
     String? levelId,
     String? ranking,
+    String? search,
     String format = 'excel',
   }) async {
     final queryParams = <String, String>{
@@ -219,6 +220,9 @@ class ReportService {
     if (ranking != null && ranking.isNotEmpty) {
       queryParams['ranking'] = ranking;
     }
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
+    }
 
     final queryString = queryParams.entries
         .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
@@ -236,6 +240,7 @@ class ReportService {
     String? subjectId,
     String? levelId,
     String? ranking,
+    String? search,
   }) async {
     final queryParams = <String, String>{'semester': semester};
     if (academicId != null && academicId.isNotEmpty) {
@@ -249,6 +254,9 @@ class ReportService {
     }
     if (ranking != null && ranking.isNotEmpty) {
       queryParams['ranking'] = ranking;
+    }
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
     }
 
     final queryString = queryParams.entries

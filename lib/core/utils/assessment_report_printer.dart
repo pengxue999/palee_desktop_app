@@ -13,6 +13,7 @@ Future<void> showAssessmentReportPrintDialog({
   String? subjectId,
   String? levelId,
   String? ranking,
+  String? search,
   VoidCallback? onPreviewReady,
 }) async {
   try {
@@ -28,6 +29,7 @@ Future<void> showAssessmentReportPrintDialog({
       subjectId: subjectId,
       levelId: levelId,
       ranking: ranking,
+      search: search,
     );
 
     if (!context.mounted) {

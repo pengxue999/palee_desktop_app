@@ -20,6 +20,7 @@ class AppDataTable<T extends Object> extends StatefulWidget {
   final void Function(T)? onPrint;
   final bool Function(T)? canDelete;
   final List<String> searchKeys;
+  final ValueChanged<String>? onSearchChanged;
   final String addLabel;
   final bool showActions;
   final bool isLoading;
@@ -40,6 +41,7 @@ class AppDataTable<T extends Object> extends StatefulWidget {
     this.onPrint,
     this.canDelete,
     this.searchKeys = const [],
+    this.onSearchChanged,
     this.addLabel = "ເພີ່ມໃໝ່",
     this.showActions = true,
     this.isLoading = false,
@@ -83,6 +85,20 @@ class _AppDataTableState<T extends Object> extends State<AppDataTable<T>> {
     _hoveredRow.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _setSearchQuery(String value) {
+    if (searchQuery == value) return;
+    setState(() {
+      searchQuery = value;
+      currentPage = 1;
+    });
+    widget.onSearchChanged?.call(value);
+  }
+
+  void _clearSearchQuery() {
+    _searchController.clear();
+    _setSearchQuery('');
   }
 
   List<T> get filteredData {
@@ -206,17 +222,10 @@ class _AppDataTableState<T extends Object> extends State<AppDataTable<T>> {
                         size: 16,
                         color: AppColors.mutedForeground,
                       ),
-                      onPressed: () => setState(() {
-                        searchQuery = '';
-                        _searchController.clear();
-                        currentPage = 1;
-                      }),
+                      onPressed: _clearSearchQuery,
                     )
                   : null,
-              onChanged: (v) => setState(() {
-                searchQuery = v;
-                currentPage = 1;
-              }),
+              onChanged: _setSearchQuery,
             ),
           if (hasSearch && widget.headerTrailing != null)
             const SizedBox(height: 12),
@@ -334,17 +343,10 @@ class _AppDataTableState<T extends Object> extends State<AppDataTable<T>> {
                 size: 16,
                 color: AppColors.mutedForeground,
               ),
-              onPressed: () => setState(() {
-                searchQuery = '';
-                _searchController.clear();
-                currentPage = 1;
-              }),
+              onPressed: _clearSearchQuery,
             )
           : null,
-      onChanged: (v) => setState(() {
-        searchQuery = v;
-        currentPage = 1;
-      }),
+      onChanged: _setSearchQuery,
     );
 
     if (maxWidth != null) {

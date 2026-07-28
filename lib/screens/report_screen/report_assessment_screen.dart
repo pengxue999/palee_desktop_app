@@ -31,6 +31,16 @@ class _ReportAssessmentScreenState
     {'value': 'FINAL', 'label': 'ທ້າຍພາກ'},
   ];
   static const _rankOptions = ['1', '2', '3'];
+  static const _searchKeys = [
+    'fullName',
+    'studentId',
+    'provinceName',
+    'districtName',
+    'subjectName',
+    'levelName',
+    'semester',
+    'ranking',
+  ];
 
   final ReportService _reportService = ReportService();
 
@@ -38,6 +48,7 @@ class _ReportAssessmentScreenState
   String? _selectedSubjectId;
   String? _selectedLevelId;
   String? _selectedRanking;
+  String _searchQuery = '';
   bool _isPreparingPdfPrint = false;
 
   int? get _selectedRankingValue => int.tryParse(_selectedRanking ?? '');
@@ -107,6 +118,7 @@ class _ReportAssessmentScreenState
               subjectId: _selectedSubjectId,
               levelId: _selectedLevelId,
               ranking: _selectedRanking,
+              search: _searchQuery,
               format: format,
             )
             .then((response) => response.data);
@@ -136,6 +148,7 @@ class _ReportAssessmentScreenState
         subjectId: _selectedSubjectId,
         levelId: _selectedLevelId,
         ranking: _selectedRanking,
+        search: _searchQuery,
         onPreviewReady: () {
           if (mounted && _isPreparingPdfPrint) {
             setState(() => _isPreparingPdfPrint = false);
@@ -149,7 +162,16 @@ class _ReportAssessmentScreenState
     }
   }
 
+  // ຄົ້ນຫາແບບດຽວກັນກັບ AppDataTable ເພື່ອໃຫ້ຈຳນວນລາຍການ, Excel ແລະ PDF ກົງກັນ.
+  bool _matchesSearch(AssessmentReportItem item, String query) {
+    return _searchKeys.any((key) {
+      final value = item[key] ?? '-';
+      return value.toString().toLowerCase().contains(query);
+    });
+  }
+
   List<AssessmentReportItem> _filterItems(List<AssessmentReportItem> items) {
+    final query = _searchQuery.toLowerCase();
     final filtered = items.where((item) {
       if (_selectedSubjectId != null && item.subjectId != _selectedSubjectId) {
         return false;
@@ -159,6 +181,9 @@ class _ReportAssessmentScreenState
       }
       if (_selectedRankingValue != null &&
           item.ranking != _selectedRankingValue) {
+        return false;
+      }
+      if (query.isNotEmpty && !_matchesSearch(item, query)) {
         return false;
       }
       return true;
@@ -455,16 +480,10 @@ class _ReportAssessmentScreenState
               child: AppDataTable<AssessmentReportItem>(
                 data: filteredItems,
                 columns: columns,
-                searchKeys: const [
-                  'fullName',
-                  'studentId',
-                  'provinceName',
-                  'districtName',
-                  'subjectName',
-                  'levelName',
-                  'semester',
-                  'ranking',
-                ],
+                searchKeys: _searchKeys,
+                onSearchChanged: (value) {
+                  setState(() => _searchQuery = value);
+                },
                 isLoading: reportState.isLoading,
               ),
             ),
