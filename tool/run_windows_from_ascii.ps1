@@ -2,7 +2,8 @@ param(
   [switch]$Build,
   [switch]$Debug,
   [switch]$Release,
-  [switch]$Clean
+  [switch]$Clean,
+  [switch]$Prepare
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,6 +44,10 @@ if (Test-Path $asciiProjectPath) {
   }
 } else {
   New-Item -ItemType Junction -Path $asciiProjectPath -Target $projectPath | Out-Null
+}
+
+if ($Prepare) {
+  exit 0
 }
 
 Push-Location $asciiProjectPath
